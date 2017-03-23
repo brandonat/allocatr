@@ -1,0 +1,7 @@
+.Rproj.user
+.Rhistory
+.RData
+inst/doc
+vignettes
+packrat/lib*/
+R/testing/
