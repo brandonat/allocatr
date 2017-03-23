@@ -3,5 +3,5 @@
 .RData
 inst/doc
 vignettes
-packrat/
+packrat/*
 R/testing/
