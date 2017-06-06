@@ -1,11 +1,12 @@
 ## Utilities
 
-
-returns_dy <- function(x) {
+## Convert from daily to yearly returns
+return_dy <- function(x) {
   (1 + x) ^ 250 - 1
 }
 
-returns_yd <- function(x) {
+## Convert from yearly to daily returns
+return_yd <- function(x) {
   (1 + x) ^ (1 / 250) - 1
 }
 

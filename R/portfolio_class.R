@@ -13,8 +13,8 @@ portfolio <- function(symbols = NULL, prices = NULL, weights = NULL, ...) {
   ## First check if 'prices' was provided to avoid extra work
   if (!is.null(prices)) {
 
-    if (!tible::is_tibble(prices)) stop("prices must be a tbl_df object. use 'get_prices()'")
-    symbols <- names(prices)
+    if (!tibble::is_tibble(prices)) stop("prices must be a tbl_df object. use 'get_prices()'")
+    symbols <- names(prices)[-1] # remove date
 
   } else if (!is.null(symbols)) {
 

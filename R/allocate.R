@@ -2,7 +2,10 @@
 
 allocate <- function(p, method = "mv", ...) {
 
-  if (method == "mv") return(allocate_mv(p, ...))
+  returns <- p$returns[-1] # remove date
+
+  if (method == "mv") return(allocate_mv(returns, ...))
+  if (method == "resampled_mv") return(allocate_rmv(returns, ...))
 
   ## add methods for:
   ##  mv with covariance matrix shrinkage
@@ -13,15 +16,22 @@ allocate <- function(p, method = "mv", ...) {
 
 }
 
-## !! will this provide the optimal? or Eff. Frontier as well?
-allocate_mv <- function(p, short_selling = FALSE, max_allocation = NULL) {
 
-    ## For now, p = returns. Will change to portfolio object's returns
-    ## x <- p$returns
-    x <- p
+#' Allocate with Mean Variance Optimization
+#'
+#' @param p a portofio object.
+#' @param short_selling whether short selling is allowed.
+#' @param max_allocation optional max percent for any single asset.
+#'
+#' @return a list of optimal weights, expected return, and expected volatility.
+#' @export
+#'
+#' @examples
+allocate_mv <- function(returns, short_selling = FALSE, max_allocation = NULL) {
 
-    ## k assets
-    k <- ncol(x)
+    ## Returns and number of assets
+    x <- returns
+    k <- ncol(returns)
 
     ## covariance matrix and average returns
     cov_mat <- cov(x)
@@ -68,4 +78,30 @@ allocate_mv <- function(p, short_selling = FALSE, max_allocation = NULL) {
     list(weights = round(w, 5),
          return = ret_p,
          stdev = var_p)
+}
+
+allocate_rmv <- function(returns, iter = 100, ...) {
+
+  x <- returns
+  k <- ncol(x)
+  m <- nrow(x)
+
+  ## Bagging weights
+  bag_w <- as.data.frame(
+    matrix(0, nrow = iter, ncol = k))
+  names(bag_w) <- c(names(x))
+
+  for (i in 1:iter) {
+    index <- sample(m, replace = TRUE)
+    res <- allocate_mv(x[index, ], ...)
+
+    bag_w[i, ] <- res$weights
+  }
+
+  ## Aggregate using column means
+  w <- colMeans(bag_w)
+
+  ## todo: calc ret_p and std_p
+
+  w
 }

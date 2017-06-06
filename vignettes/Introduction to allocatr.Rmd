@@ -13,29 +13,30 @@ vignette: >
 library(allocatr)
 ```
 
-```{r}
+```{r, messages=FALSE}
 ## Paramaters
 us_equity  <- c("VTI", "VTV", "VOE", "VBR", "VIG")
-intl_equity <- c("VEA", "VWO")
 us_bonds    <- c("MUB", "VTIP", "LQD", "BND")
-intl_bonds <- c("BNDX", "VWOB")
-alt_assets <- c("XLE")
 
-symbols <- sort(c(us_equity, intl_equity, us_bonds, intl_equity, alt_assets))
+symbols <- sort(c(us_equity, us_bonds))
 
 ## Load stock prices
 prices <- get_prices(symbols, from = "2000-01-01")
-save(prices, file = "data/test_prices.RData")
 
 pf <- portfolio(prices = prices)
 
-## Calculate daily returns
-rets <- daily_returns(prices)
+## Look at structure of the portfolio object
+class(pf)
+names(pf)
+```
 
+Examine basic characteristics of the portofio.
+```{r}
 ## Plot cumulative returns
-plot_returns(rets)
+plot_returns(pf$returns)
 
-optimal_portfolio(rets)
+## Plot unrebalanced weights
+plot_weights(pf$h_weights)
 ```
 
 ## Portoflio Metrics
