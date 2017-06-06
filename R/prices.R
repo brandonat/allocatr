@@ -36,27 +36,56 @@ get_prices <- function(symbols, ...) {
     lapply(symbols, close_prices, envir = prices_env)
   )
 
-  na.omit(x)
+  ## Return as tbl_df
+  xts2tbl(na.omit(x))
 }
 
 daily_returns <- function(prices) {
 
-  x <- prices
+  x <- tbl2xts(prices)
   out <- vapply(x, quantmod::dailyReturn, numeric(nrow(x)))
-  xts::xts(out, order.by = zoo::index(x))
+  out <- xts::xts(out, order.by = zoo::index(x))
+  xts2tbl(out)
 }
 
-monthly_returns <- function(prices) {
-
-  x <- prices
-  out <- vapply(x, quantmod::monthlyReturn, numeric(nrow(x)))
-  xts::xts(out, order.by = zoo::index(x))
-}
+## !! apply function not working
+# monthly_returns <- function(prices) {
+#
+#   x <- tbl2xts(prices)
+#   out <- sapply(x, quantmod::monthlyReturn)
+#   out <- xts::xts(out, order.by = zoo::index(x))
+#   tbl2xts(out)
+# }
 
 cumulative_returns <- function(returns) {
 
-  x <- 1 + returns
+  date <- returns[, 1]
+  x <- 1 + returns[, -1]
   out <- vapply(x, cumprod, numeric(nrow(x)))
-  xts::xts(out, order.by = zoo::index(x))
+  out <- as.data.frame(out)
+  tibble::as_tibble(cbind(date, out))
+}
+
+h_weights <- function(weights, returns) {
+
+  date <- returns[, 1]
+  n <- ncol(returns) - 1
+
+  ## Set initial values to weights then apply daily returns thereafter
+  tmp <- 1 + returns[, -1]
+  tmp[1, ] <- weights
+  tmp <- vapply(tmp, cumprod, numeric(nrow(tmp)))
+  tmp <- data.frame(tmp)
+
+  ## Calculate sum across rows
+  row_sum <- rowSums(tmp)
+
+  ## Then recalculate weights for a historical series
+  out <- tmp
+  for (i in 1:n) {
+    out[, i] <- out[, i] / row_sum
+  }
+
+  tibble::as_tibble(cbind(date, out))
 }
 

@@ -1,40 +1,12 @@
 
 #http://blog.streeteye.com/blog/2012/01/portfolio-optimization-and-efficient-frontiers-in-r/
 
-library(quadprog)
-library(ggplot2)
-library(dplyr)
-
-## Paramaters
-equity  <- c("SPY", "MDY", "IJR", "EFA", "EEM")
-bond    <- c("SHV", "IEI", "TLT", "LQD", "BNDX", "TIP")
-other   <- c("IYR")
-symbols <- sort(c(equity, bond, other))
-
-## Load stock prices
-prices <- get_prices(symbols, from = "2000-01-01")
-
-## Calculate daily returns
-rets <- daily_returns(prices)
-
-## Plot cumulative returns
-plot_returns(rets)
-
-
-
-
-
-
-
-
-optimal_portofio(rets)
-
 
 ## Minimum Variance Portfolio
 
 efficient_frontier <- function (returns, short_selling = FALSE, max_allocation = NULL,
                                 risk_premium_up = 0.5, risk_increment = 0.005){
-  
+
   # return argument should be a m x n matrix with one column per security
   # short argument is whether short-selling is allowed; default is no (short
   # selling prohibited) max_allocation is the maximum % allowed for any one
@@ -44,7 +16,7 @@ efficient_frontier <- function (returns, short_selling = FALSE, max_allocation =
 
   cov_mat = cov(returns)
   n_assets <- ncol(returns)
-  
+
   # Create initial Amat and bvec assuming only equality constraint
   # (short-selling is allowed, no allocation constraints)
   Amat <- matrix (1, nrow = n_assets)
@@ -76,7 +48,7 @@ efficient_frontier <- function (returns, short_selling = FALSE, max_allocation =
   # Initialize a matrix to contain allocation and statistics
   # This is not necessary, but speeds up processing and uses less memory
   ef <- matrix(nrow = loops, ncol = n_assets + 3)
-  
+
   # Now I need to give the matrix column names
   colnames(ef) <- c(colnames(returns), "sd", "ret", "sharpe")
 
@@ -90,7 +62,7 @@ efficient_frontier <- function (returns, short_selling = FALSE, max_allocation =
     loop <- loop+1
   }
   ef[, "sharpe"] <- ef[, "ret"] / ef[, "sd"]
-  
+
   as.data.frame(ef)
 }
 
@@ -98,11 +70,11 @@ ef <- efficient_frontier(rets, max_allocation = 0.2)
 
 ## annualize
 ef$ret <- round((1 + ef$ret) ^ 250 - 1, 4)
-ef$sd <- round(ef$sd * sqrt(250), 4)  
+ef$sd <- round(ef$sd * sqrt(250), 4)
 
 optimal <- ef[which.max(ef$sharpe), ]
 
-ggplot(ef) + 
+ggplot(ef) +
   geom_line(aes(x = sd, y = ret)) +
   geom_point(aes(x = optimal$sd, y = optimal$ret)) +
   theme_minimal()
@@ -146,12 +118,12 @@ res <- solve.QP(cov_mat, zeros, t(opt.constraints), opt.rhs, meq = opt.meq)
 minvol_wts <= res$solution
 minvol_var <- res$value
 minvol_ret <- asset_returns %*% minvol_wts
-  
 
 
 
 
-  
+
+
 #   > # generate a sequence of 50 evenly spaced returns between min var return and max return
 #   > lowreturn=ret.minvol
 # > highreturn=ret.maxret
@@ -208,8 +180,8 @@ minvol_ret <- asset_returns %*% minvol_wts
 # > efrontier$gold=out.gold*100
 # > names(efrontier) = c("Return", "Risk", "%Stocks", "%Bills", "%Bonds", "%Gold")
 # > efrontier
-# 
-# 
+#
+#
 # apoints=data.frame(realsdspct)
 # apoints$realreturns = realreturnspct
 # ggplot(data=efrontier, aes(x=Risk, y=Return)) +
@@ -223,10 +195,10 @@ minvol_ret <- asset_returns %*% minvol_wts
 #   annotate("text", apoints[3,1], apoints[3,2],label=" bonds", hjust=0) +
 #   annotate("text", apoints[4,1], apoints[4,2],label=" gold", hjust=0) +
 #   annotate("text", 19,0.3,label="streeteye.com", hjust=0, alpha=0.5)
-#   
-#   
-# 
-# 
+#
+#
+#
+#
 # > keep=c("Risk", "%Stocks","%Bills","%Bonds","%Gold")
 # > efrontier.tmp = efrontier[keep]
 # > efrontier.m = melt(efrontier.tmp, id ='Risk')
@@ -240,14 +212,14 @@ minvol_ret <- asset_returns %*% minvol_wts
 #   +	 scale_fill_manual("", breaks=c("%Stocks", "%Bills", "%Bonds","%Gold"), values = c(dvblue,dvgreen,dvred,dvyellow), labels=c('%Stocks', '%Bills','%Bonds','%Gold')) +
 #   +	 annotate("text", 16,-2.5,label="streeteye.com", hjust=0, alpha=0.5)
 # >
-# 
-# 
-# 
+#
+#
+#
 # # Economist at Large
 # # Modern Portfolio Theory
 # # Use solve.QP to solve for efficient frontier
 # # Last Edited 5/3/13
-# 
+#
 # # This file uses the solve.QP function in the quadprog package to solve for the
 # # efficient frontier.
 # # Since the efficient frontier is a parabolic function, we can find the solution
@@ -255,12 +227,12 @@ minvol_ret <- asset_returns %*% minvol_wts
 # # points along the efficient frontier. Then simply find the portfolio with the
 # # largest Sharpe ratio (expected return / sd) to identify the most
 # # efficient portfolio
-# 
+#
 # library(stockPortfolio) # Base package for retrieving returns
 # library(ggplot2) # Used to graph efficient frontier
 # library(reshape2) # Used to melt the data
 # library(quadprog) #Needed for solve.QP
-# 
+#
 # # Create the portfolio using ETFs, incl. hypothetical non-efficient allocation
 # stocks <- c(
 #   "VTSMX" = .0,
@@ -270,11 +242,11 @@ minvol_ret <- asset_returns %*% minvol_wts
 #   "VWO" = .30,
 #   "LQD" = .20,
 #   "HYG" = .10)
-# 
+#
 # # Retrieve returns, from earliest start date possible (where all stocks have
 # # data) through most recent date
 # returns <- getReturns(names(stocks[-1]), freq="week") #Currently, drop index
-# 
+#
 # #### Efficient Frontier function ####
 # eff.frontier <- function (returns, short="no", max_allocation=NULL,
 #                           risk.premium.up=.5, risk.increment=.005){
@@ -284,23 +256,23 @@ minvol_ret <- asset_returns %*% minvol_wts
 #   # security (reduces concentration) risk.premium.up is the upper limit of the
 #   # risk premium modeled (see for loop below) and risk.increment is the
 #   # increment (by) value used in the for loop
-#   
+#
 #   covariance <- cov(returns)
 #   print(covariance)
 #   n <- ncol(covariance)
-#   
+#
 #   # Create initial Amat and bvec assuming only equality constraint
 #   # (short-selling is allowed, no allocation constraints)
 #   Amat <- matrix (1, nrow=n)
 #   bvec <- 1
 #   meq <- 1
-#   
+#
 #   # Then modify the Amat and bvec if short-selling is prohibited
 #   if(short=="no"){
 #     Amat <- cbind(1, diag(n))
 #     bvec <- c(bvec, rep(0, n))
 #   }
-#   
+#
 #   # And modify Amat and bvec if a max allocation (concentration) is specified
 #   if(!is.null(max_allocation)){
 #     if(max_allocation > 1 | max_allocation <0){
@@ -312,17 +284,17 @@ minvol_ret <- asset_returns %*% minvol_wts
 #     Amat <- cbind(Amat, -diag(n))
 #     bvec <- c(bvec, rep(-max_allocation, n))
 #   }
-#   
+#
 #   # Calculate the number of loops
 #   loops <- risk.premium.up / risk.increment + 1
 #   loop <- 1
-#   
+#
 #   # Initialize a matrix to contain allocation and statistics
 #   # This is not necessary, but speeds up processing and uses less memory
 #   eff <- matrix(nrow=loops, ncol=n+3)
 #   # Now I need to give the matrix column names
 #   colnames(eff) <- c(colnames(returns), "Std.Dev", "Exp.Return", "sharpe")
-#   
+#
 #   # Loop through the quadratic program solver
 #   for (i in seq(from=0, to=risk.premium.up, by=risk.increment)){
 #     dvec <- colMeans(returns) * i # This moves the solution along the EF
@@ -333,24 +305,24 @@ minvol_ret <- asset_returns %*% minvol_wts
 #     eff[loop,1:n] <- sol$solution
 #     loop <- loop+1
 #   }
-#   
+#
 #   return(as.data.frame(eff))
 # }
-# 
+#
 # # Run the eff.frontier function based on no short and 50% alloc. restrictions
 # eff <- eff.frontier(returns=returns$R, short="no", max_allocation=.50,
 #                     risk.premium.up=1, risk.increment=.001)
-# 
+#
 # # Find the optimal portfolio
 # eff.optimal.point <- eff[eff$sharpe==max(eff$sharpe),]
-# 
+#
 # # graph efficient frontier
 # # Start with color scheme
 # ealred <- "#7D110C"
 # ealtan <- "#CDC4B6"
 # eallighttan <- "#F7F6F0"
 # ealdark <- "#423C30"
-# 
+#
 # ggplot(eff, aes(x=Std.Dev, y=Exp.Return)) + geom_point(alpha=.1, color=ealdark) +
 #   geom_point(data=eff.optimal.point, aes(x=Std.Dev, y=Exp.Return, label=sharpe),
 #              color=ealred, size=5) +

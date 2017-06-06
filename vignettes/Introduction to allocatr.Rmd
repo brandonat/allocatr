@@ -9,6 +9,34 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r}
+library(allocatr)
+```
+
+```{r}
+## Paramaters
+us_equity  <- c("VTI", "VTV", "VOE", "VBR", "VIG")
+intl_equity <- c("VEA", "VWO")
+us_bonds    <- c("MUB", "VTIP", "LQD", "BND")
+intl_bonds <- c("BNDX", "VWOB")
+alt_assets <- c("XLE")
+
+symbols <- sort(c(us_equity, intl_equity, us_bonds, intl_equity, alt_assets))
+
+## Load stock prices
+prices <- get_prices(symbols, from = "2000-01-01")
+save(prices, file = "data/test_prices.RData")
+
+pf <- portfolio(prices = prices)
+
+## Calculate daily returns
+rets <- daily_returns(prices)
+
+## Plot cumulative returns
+plot_returns(rets)
+
+optimal_portfolio(rets)
+```
 
 ## Portoflio Metrics
 
